@@ -4,7 +4,10 @@ const puppeteer = require('puppeteer');
 
 const twitterAccounts = {
     "TIDAL" : "https://twitter.com/TIDAL",
-    "DUOLINGO" : "https://twitter.com/duolingo"
+    "DUOLINGO" : "https://twitter.com/duolingo",
+    "FACEBOOK" : "https://twitter.com/Facebook",
+    "FORD" : "https://twitter.com/Ford",
+    "TESLA" : "https://twitter.com/Tesla"
 }
 
 
