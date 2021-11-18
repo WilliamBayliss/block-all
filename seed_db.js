@@ -1,6 +1,5 @@
 require('dotenv').config('./.env')
 const { MongoClient } = require('mongodb');
-const puppeteer = require('puppeteer');
 
 const twitterAccounts = {
     "TIDAL" : "https://twitter.com/TIDAL",
