@@ -35,14 +35,14 @@ async function seedDB() {
             accountsToPush.push(accountInDB);
         }
         // Push all created account objects to the database
-        accounts.insertMany(accountsToPush)
+        await accounts.insertMany(accountsToPush)
 
         console.log("Database seeded!")
 
     } catch (e) {
         console.error(e);
     } finally {
-       await client.close();
+        client.close();
     }
 }
 
