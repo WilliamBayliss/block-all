@@ -46,14 +46,20 @@ async function blockAll() {
             await page.keyboard.press('Enter');
         } catch (e) {
             console.log(e)
+            // TODO: if password field doesn't come up twitter is likely prompting for another piece of user info
+            // So check for another input field for email and fill that out if it comes up
         }
 
         await page.waitForNavigation();
+
+        // Get list of twitter accounts from DB
         let accounts = await getAccountsToBlock();
         
+        // Iterate over accounts, blocking each one
         for (let account of accounts) {
             await page.goto(account.twitterURL);
-            
+            await page.waitForNavigation();
+
         }
 
 
