@@ -2,6 +2,24 @@ require('dotenv').config('./.env');
 const puppeteer = require('puppeteer');
 const { MongoClient } = require('mongodb');
 
+async function getAccountsToBlock() {
+    const url = process.env.MONGO_URL
+    const client = new MongoClient(url);
+    let accounts
+    try {
+        await client.connect();
+        console.log("Connected!");
+        accounts = await client.db('blockAll').collection('accounts').find({}).toArray();
+
+    } catch (e) {
+        console.log(e);
+
+    } finally {
+        await client.close();
+    }
+    return accounts
+}
+
 async function blockAll() {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
@@ -31,6 +49,13 @@ async function blockAll() {
         }
 
         await page.waitForNavigation();
+        let accounts = await getAccountsToBlock();
+        
+        for (let account of accounts) {
+            await page.goto(account.twitterURL);
+            
+        }
+
 
     } catch (e) {
         console.log(e);
