@@ -57,10 +57,27 @@ async function blockAll() {
         
         // Iterate over accounts, blocking each one
         for (let account of accounts) {
-            await page.goto(account.twitterURL);
-            await page.waitForNavigation();
-
-        }
+            try {
+                const newPage = await browser.newPage();
+                await newPage.goto(account.twitterURL);
+                await newPage.waitForTimeout(5000)
+                let threeDotsButton = 'div[data-testid="userActions"]';
+                await newPage.waitForSelector(threeDotsButton);
+                await newPage.click(threeDotsButton);
+                await newPage.waitForTimeout(5000)
+                await newPage.waitForSelector('div[data-testid="block"]');
+                await newPage.click('div[data-testid="block"]');
+                await newPage.waitForTimeout(5000)
+    
+                await newPage.waitForSelector('div[data-testid="confirmationSheetDialog"]')
+                await newPage.waitForTimeout(5000)
+                await newPage.click('div[data-testid="confirmationSheetConfirm"]')
+                await newPage.waitForTimeout(5000)
+    
+                } catch {
+                    console.log("page already blocked");
+                }
+            }
 
 
     } catch (e) {
