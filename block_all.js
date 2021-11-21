@@ -63,6 +63,7 @@ async function blockAll() {
                 await newPage.waitForTimeout(5000)
                 let threeDotsButton = 'div[data-testid="userActions"]';
                 await newPage.waitForSelector(threeDotsButton);
+                // TODO: Add check for if page is already blocked
                 await newPage.click(threeDotsButton);
                 await newPage.waitForTimeout(5000)
                 await newPage.waitForSelector('div[data-testid="block"]');
@@ -73,7 +74,7 @@ async function blockAll() {
                 await newPage.waitForTimeout(5000)
                 await newPage.click('div[data-testid="confirmationSheetConfirm"]')
                 await newPage.waitForTimeout(5000)
-    
+                await newPage.close();
                 } catch {
                     console.log("page already blocked");
                 }
