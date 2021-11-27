@@ -33,10 +33,13 @@ async function blockAll() {
         // Navigate to login page
         await page.goto('https://twitter.com/i/flow/login');
         // Select username field, type username and press enter
-        await page.waitForSelector('input[name=username]');
-        await page.focus('input[name=username]');
-        await page.keyboard.type(twitterAccount.username);
-        await page.keyboard.press('Enter');
+            // Twitter has more than one login landing screen for username and the input fields have different names, 
+            // need to do more testing and potentially evaluate which screen has been served to avoid bugs
+            await page.waitForSelector('input[name="text"]');
+            await page.focus('input[name="text"]')
+            await page.keyboard.type(twitterAccount.username);
+            await page.keyboard.press('Enter');
+        
         try {
 
             // Select password field, type password and press enter
@@ -60,23 +63,28 @@ async function blockAll() {
             try {
                 const newPage = await browser.newPage();
                 await newPage.goto(account.twitterURL);
-                await newPage.waitForTimeout(5000)
+                console.log(`Blocking ${account.name}...`)
+                console.log(`${account.twitterURL}`)
+                
                 let threeDotsButton = 'div[data-testid="userActions"]';
                 await newPage.waitForSelector(threeDotsButton);
-                // TODO: Add check for if page is already blocked
-                await newPage.click(threeDotsButton);
-                await newPage.waitForTimeout(5000)
-                await newPage.waitForSelector('div[data-testid="block"]');
-                await newPage.click('div[data-testid="block"]');
-                await newPage.waitForTimeout(5000)
-    
-                await newPage.waitForSelector('div[data-testid="confirmationSheetDialog"]')
-                await newPage.waitForTimeout(5000)
-                await newPage.click('div[data-testid="confirmationSheetConfirm"]')
-                await newPage.waitForTimeout(5000)
+                // Check whether 'Unblock' button is present
+                if (await newPage.$('div[data-testid$="-unblock"]') == null) {
+                    // Block account
+                    await newPage.click(threeDotsButton);
+                    await newPage.waitForSelector('div[data-testid="block"]');
+                    await newPage.click('div[data-testid="block"]');
+                    await newPage.waitForSelector('div[data-testid="confirmationSheetDialog"]')
+                    await newPage.click('div[data-testid="confirmationSheetConfirm"]')
+                    console.log('Success!')
+                } else {
+                    // If unblock present account is already blocked
+                    console.log(`${account.name} is already blocked.`)
+                }
+                
                 await newPage.close();
-                } catch {
-                    console.log("page already blocked");
+                } catch(error) {
+                    console.log(error);
                 }
             }
 
