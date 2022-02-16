@@ -9,23 +9,10 @@ async function addAccountsToDB(twitterAccounts) {
     try {
         // Connect to db
         await client.connect();
-        console.log('Connected!');
-        // get collection from mongo
-        const accounts = client.db('blockAll').collection('accounts');
-        // empty collection
-        accounts.drop();
+        console.log('Connected to MongoDB!');
         
-        // Create an object for each key/value pair in twitterAccounts
-        accountsToPush = [];
-        for (let account in twitterAccounts) {
-            // add object to array
-            accountsToPush.push({
-                name: account,
-                twitterURL: twitterAccounts[account]
-            });
-        }
         // Push all created account objects to the database
-        await accounts.insertMany(accountsToPush)
+        await accounts.insertMany(twitterAccounts)
 
         console.log("Database seeded!")
 
@@ -38,7 +25,6 @@ async function addAccountsToDB(twitterAccounts) {
 
 async function scrapePromotedAccounts() {
 
-    let twitterAccounts;
 
 
     const browser = await puppeteer.launch({ headless: false });
@@ -73,17 +59,26 @@ async function scrapePromotedAccounts() {
             // TODO: if password field doesn't come up twitter is likely prompting for another piece of user info
             // So check for another input field for email and fill that out if it comes up
         }
+        console.log("Login Success");
 
         // TODO MAIN
-        // Get all promoted tweets
-        // Get each tweet's account
-        // Add Accounts to DB
+        await page.waitForSelector('article[data-testid="tweet"]');
+        console.log("Tweets Exist")
+        // Get Array of tweet divs
+        // Check if each tweet is promoted
+            // Get href for username
+            // Add to DB
+        console.log(tweets);
+        // addAccountsToDB(twitterAccounts);
 
 
     } catch {
         // TODO Login failure handling
     } finally {
-        browser.close();
+        console.log("Terminating")
+        // browser.close();
     }
 }
+
+scrapePromotedAccounts();
 
