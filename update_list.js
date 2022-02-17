@@ -1,6 +1,8 @@
 require('dotenv').config('./.env');
 const puppeteer = require('puppeteer');
+const { scrollPageToBottom } = require('puppeteer-autoscroll-down')
 const { MongoClient } = require('mongodb');
+
 
 async function addAccountsToDB(twitterAccounts) {
     // Set url and create mongoDB client
@@ -8,14 +10,13 @@ async function addAccountsToDB(twitterAccounts) {
     const client = new MongoClient(url);
     try {
         // Connect to db
+        console.log("Connecting to MongoDB...")
         await client.connect();
-        console.log('Connected to MongoDB!');
-        
+        console.log('Connected!');
+        console.log("Inserting accounts...")
         // Push all created account objects to the database
-        await accounts.insertMany(twitterAccounts)
-
-        console.log("Database seeded!")
-
+        await client.db.accounts.insertMany(twitterAccounts)
+        console.log("Accounts added to database!")
     } catch (e) {
         console.error(e);
     } finally {
@@ -23,9 +24,48 @@ async function addAccountsToDB(twitterAccounts) {
     }
 }
 
-async function scrapePromotedAccounts() {
+async function scrapePromotedAccounts(page) {
+    let promotedAccounts = [];
+    // await page.reload();
+    // Scroll down to load more tweets
+    await page.waitForSelector('article[data-testid="tweet"]');
+    // Get Array of tweet divs
+    while (promotedAccounts.length <= 5) {
+        let scrapedAccounts = await page.evaluate( () => {
+            let array = [];
+            let timeline = document.querySelector('div[aria-label="Timeline: Your Home Timeline"]');
+            let tweets = timeline.querySelectorAll('div[data-testid="placementTracking"]');
+            for (let tweet of tweets) {
+                if (tweet.textContent.endsWith("Promoted")) {
+                    let tweetContent = tweet.innerText.split(/\r?\n/);
+                    let accountName = tweetContent[0];
+                    let handle = tweetContent[1];
+                    let name = handle.substring(1);
+                    let accountURL = `https://twitter.com/${name}`
+                    let accountDetails = {
+                        name: accountName,
+                        twitterURL: accountURL
+                    }
+                    if (array.some(account => account["name"] == accountDetails["name"]) == false) {
+                        array.push(accountDetails)       
+                    }
+                }
+            }
+            return array
+        });
+        // console.log(scrapedAccounts)
+        for (let accountDetails of scrapedAccounts) {
+            if (promotedAccounts.some(account => account["name"] == accountDetails["name"]) == false) {
+                promotedAccounts.push(accountDetails)
+                console.log(accountDetails)
+            }
+        }
+        await scrollPageToBottom(page, {size: 100, delay: 100, stepsLimit: 1})
+    };
+    return promotedAccounts;
+}
 
-
+async function update_list() {
 
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
@@ -60,25 +100,19 @@ async function scrapePromotedAccounts() {
             // So check for another input field for email and fill that out if it comes up
         }
         console.log("Login Success");
-
-        // TODO MAIN
+        // Wait for page to finish loading
         await page.waitForSelector('article[data-testid="tweet"]');
-        console.log("Tweets Exist")
-        // Get Array of tweet divs
-        // Check if each tweet is promoted
-            // Get href for username
-            // Add to DB
-        console.log(tweets);
-        // addAccountsToDB(twitterAccounts);
-
-
+        console.log("Scraping Promoted Tweets...")
+        let promotedAccounts = await scrapePromotedAccounts(page);
+        console.log("Pushing accounts to DB...")
+        await addAccountsToDB(promotedAccounts);
     } catch {
         // TODO Login failure handling
     } finally {
-        console.log("Terminating")
-        // browser.close();
+        console.log("All done! Have a nice day =)")
+        browser.close();
     }
 }
 
-scrapePromotedAccounts();
+update_list();
 
