@@ -2,6 +2,7 @@
   "dependencies": {
     "dotenv": "^10.0.0",
     "mongodb": "^4.2.0",
-    "puppeteer": "^11.0.0"
+    "puppeteer": "^13.3.2",
+    "puppeteer-autoscroll-down": "^1.0.0"
   }
 }
