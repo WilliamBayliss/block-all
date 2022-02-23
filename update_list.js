@@ -14,8 +14,10 @@ async function addAccountsToDB(twitterAccounts) {
         await client.connect();
         console.log('Connected!');
         console.log("Inserting accounts...")
+
+        const accounts = client.db('blockAll').collection('accounts');
         // Push all created account objects to the database
-        await client.db.accounts.insertMany(twitterAccounts)
+        await accounts.insertMany(twitterAccounts)
         console.log("Accounts added to database!")
     } catch (e) {
         console.error(e);
@@ -30,7 +32,7 @@ async function scrapePromotedAccounts(page) {
     // Scroll down to load more tweets
     await page.waitForSelector('article[data-testid="tweet"]');
     // Get Array of tweet divs
-    while (promotedAccounts.length <= 5) {
+    while (promotedAccounts.length <= 10) {
         let scrapedAccounts = await page.evaluate( () => {
             let array = [];
             let timeline = document.querySelector('div[aria-label="Timeline: Your Home Timeline"]');
